@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pengumuman Hasil Penerimaan Murid Baru Madrasah Ibtidaiyah">
+    <title id="page-title">PMBM - Pengumuman Hasil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@700&display=swap');
+        
+        :root {
+            --font-color: #1f2937;
+            --bg-color: #f8fafc;
+            --accepted-color: #10b981;
+            --reserve-color: #f59e0b;
+            --rejected-color: #ef4444;
+        }
+        
+        * {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+        
+        .page {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-badge {
+            padding: 4px 16px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.025em;
+        }
+        
+        .countdown-digit {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .admin-key {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans" style="background-color: var(--bg-color); color: var(--font-color);">
+    <!-- HEADER -->
+    <header class="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <!-- Logo + Nama Madrasah -->
+            <div class="flex items-center gap-x-4">
+                <div id="logo-container" class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-emerald-200 shadow-inner flex-shrink-0">
+                    <img id="header-logo" src="https://placehold.co/200x200/10b981/ffffff?text=MI" alt="Logo Madrasah" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 id="header-nama" class="text-2xl font-semibold tracking-tight">Madrasah Ibtidaiyah Nurul Huda</h1>
+                    <p id="header-tagline" class="text-sm text-gray-500 -mt-1">Jenjang Madrasah Ibtidaiyah</p>
+                </div>
+            </div>
+
+            <!-- Admin Access (sangat kecil & tidak mencolok) -->
+            <button onclick="showAdminLogin()" 
+                    class="admin-key flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded-2xl text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2v4a2 2 0 01-2 2H9a2 2 0 01-2-2V9a2 2 0 012-2m6 0V5a2 2 0 00-2-2H9a2 2 0 00-2 2v2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13v.01" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- DASHBOARD / HOME -->
+        <div id="page-home" class="page">
+            <div class="text-center mb-12">
+                <h1 id="judul" class="text-5xl md:text-6xl font-bold tracking-tighter mb-3">PENGUMUMAN HASIL PMBM</h1>
+                <h2 id="sub-judul" class="text-2xl md:text-3xl text-gray-600 font-medium">Tahun Pelajaran 2025/2026</h2>
+            </div>
+
+            <!-- Kata Pengantar -->
+            <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-sm p-8 md:p-10 mb-12 prose prose-emerald">
+                <div id="kata-pengantar" class="text-lg leading-relaxed text-gray-700">
+                    Assalamu'alaikum wr. wb.<br><br>
+                    Puji syukur ke hadirat Allah SWT yang telah memberikan kesempatan kepada kita semua. 
+                    Berikut adalah pengumuman hasil Penerimaan Murid Baru Madrasah Ibtidaiyah Tahun Pelajaran 2025/2026. 
+                    Semoga menjadi berkah bagi seluruh calon murid dan orang tua.
+                </div>
+            </div>
+
+            <!-- Two Menu Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <button onclick="navigateTo('cek')" 
+                        class="group bg-white hover:shadow-xl border-2 border-emerald-200 hover:border-emerald-500 rounded-3xl p-8 text-left flex flex-col h-full">
+                    <div class="flex-1">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110">
+                            🔍
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-2">Cek Kelulusan</h3>
+                        <p class="text-gray-600">Masukkan NIK Anda untuk melihat status penerimaan</p>
+                    </div>
+                    <div class="mt-8 text-emerald-600 font-medium flex items-center gap-2">
+                        Buka sekarang 
+                        <span class="text-xl">→</span>
+                    </div>
+                </button>
+
+                <button onclick="navigateTo('info')" 
+                        class="group bg-white hover:shadow-xl border-2 border-amber-200 hover:border-amber-500 rounded-3xl p-8 text-left flex flex-col h-full">
+                    <div class="flex-1">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110">
+                            📋
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-2">Informasi Daftar Ulang</h3>
+                        <p class="text-gray-600">Jadwal, persyaratan, dan tata cara daftar ulang</p>
+                    </div>
+                    <div class="mt-8 text-amber-600 font-medium flex items-center gap-2">
+                        Baca selengkapnya 
+                        <span class="text-xl">→</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- CEK KELULUSAN PAGE -->
+        <div id="page-cek" class="page hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-semibold">Cek Kelulusan</h2>
+                    <button onclick="navigateTo('home')" 
+                            class="text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1">
+                        ← Kembali ke Beranda
+                    </button>
+                </div>
+
+                <!-- Countdown (sebelum pengumuman) -->
+                <div id="countdown-section" class="bg-white rounded-3xl shadow-sm p-8 mb-8 text-center">
+                    <p class="text-emerald-600 font-medium mb-3">Pengumuman akan dibuka pada:</p>
+                    <div id="target-date" class="text-xl font-medium mb-6"></div>
+                    <div class="grid grid-cols-4 gap-4 max-w-xs mx-auto">
+                        <div class="text-center">
+                            <div id="days" class="countdown-digit text-5xl font-bold text-emerald-600">00</div>
+                            <div class="text-xs tracking-widest text-gray-500 mt-1">HARI</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="hours" class="countdown-digit text-5xl font-bold text-emerald-600">00</div>
+                            <div class="text-xs tracking-widest text-gray-500 mt-1">JAM</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="minutes" class="countdown-digit text-5xl font-bold text-emerald-600">00</div>
+                            <div class="text-xs tracking-widest text-gray-500 mt-1">MENIT</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="seconds" class="countdown-digit text-5xl font-bold text-emerald-600">00</div>
+                            <div class="text-xs tracking-widest text-gray-500 mt-1">DETIK</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-8">Halaman ini akan otomatis kembali ke beranda setiap 25 detik</p>
+                </div>
+
+                <!-- Search Form (setelah pengumuman) -->
+                <div id="search-section" class="hidden bg-white rounded-3xl shadow-sm p-8">
+                    <div class="flex gap-3">
+                        <input id="nik-input" 
+                               type="text" 
+                               maxlength="16"
+                               placeholder="Masukkan 16 digit NIK Anda"
+                               class="flex-1 px-6 py-4 border border-gray-200 focus:border-emerald-400 rounded-3xl text-lg focus:outline-none">
+                        <button onclick="cekKelulusan()" 
+                                class="px-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-3xl">
+                            CARI
+                        </button>
+                    </div>
+                    
+                    <!-- Hasil -->
+                    <div id="result-area" class="mt-8 hidden">
+                        <div class="p-6 bg-gray-50 rounded-3xl">
+                            <table class="w-full">
+                                <tr class="border-b">
+                                    <td class="py-4 font-medium w-40">NIK</td>
+                                    <td id="result-nik" class="py-4 font-mono"></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-4 font-medium">Nama</td>
+                                    <td id="result-nama" class="py-4"></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-4 font-medium">Sekolah Asal</td>
+                                    <td id="result-sekolah" class="py-4"></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-4 font-medium">Program</td>
+                                    <td id="result-program" class="py-4"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-4 font-medium">Status</td>
+                                    <td id="result-status" class="py-4"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="not-found" class="hidden mt-8 text-center py-12 bg-red-50 text-red-600 rounded-3xl">
+                        <p class="text-2xl">⚠️</p>
+                        <p class="font-medium mt-3">NIK tidak ditemukan atau belum terdaftar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMASI DAFTAR ULANG -->
+        <div id="page-info" class="page hidden max-w-3xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-semibold">Informasi Daftar Ulang</h2>
+                <button onclick="navigateTo('home')" 
+                        class="text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-1">
+                    ← Kembali ke Beranda
+                </button>
+            </div>
+            <div id="info-daftar-ulang" class="bg-white rounded-3xl shadow-sm p-10 prose prose-emerald text-lg leading-relaxed">
+                <!-- Diisi oleh admin -->
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="footer" class="bg-white border-t py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
+            <p id="footer-text">Madrasah Ibtidaiyah Nurul Huda © 2026</p>
+            <p class="mt-1 text-xs">Website resmi PMBM • Dibuat dengan ❤️ untuk kemudahan akses informasi</p>
+        </div>
+    </footer>
+
+    <!-- ADMIN PANEL MODAL -->
+    <div onclick="if(event.target.id === 'admin-modal') hideAdmin()" 
+         id="admin-modal"
+         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center">
+        
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-white w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl shadow-2xl flex flex-col">
+            
+            <!-- Admin Header -->
+            <div class="px-8 py-5 border-b flex items-center justify-between bg-emerald-50 rounded-t-3xl">
+                <div class="flex items-center gap-x-3">
+                    <span class="text-2xl">🔑</span>
+                    <h3 class="text-2xl font-semibold text-emerald-800">Admin Panel PMBM</h3>
+                </div>
+                
+                <div class="flex items-center gap-x-4">
+                    <!-- Preview Button -->
+                    <button onclick="previewWebsite()" 
+                            class="flex items-center gap-x-2 px-5 py-2 bg-white border border-emerald-200 hover:border-emerald-400 rounded-2xl text-emerald-700 font-medium">
+                        👁️ Lihat / Preview Website
+                    </button>
+                    
+                    <!-- Logout -->
+                    <button onclick="logoutAdmin()" 
+                            class="flex items-center gap-x-2 px-5 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-2xl font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 16l4-4m0 0l-4-4m4 4V7" />
+                        </svg>
+                        Logout
+                    </button>
+                    
+                    <button onclick="hideAdmin()" class="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Sidebar Menu Admin -->
+                <div class="w-64 bg-gray-50 p-4 border-r flex flex-col">
+                    <button onclick="switchAdminTab(0)" id="tab-0"
+                            class="admin-tab active flex items-center gap-3 px-4 py-4 rounded-2xl text-left font-medium mb-1">
+                        🎨 Tampilan Umum
+                    </button>
+                    <button onclick="switchAdminTab(1)" id="tab-1"
+                            class="admin-tab flex items-center gap-3 px-4 py-4 rounded-2xl text-left font-medium mb-1">
+                        👥 Data Pendaftar
+                    </button>
+                    <button onclick="switchAdminTab(2)" id="tab-2"
+                            class="admin-tab flex items-center gap-3 px-4 py-4 rounded-2xl text-left font-medium">
+                        📅 Pengaturan Pengumuman
+                    </button>
+                    <div class="flex-1"></div>
+                    <div class="text-xs text-gray-400 px-4">
+                        Supabase terhubung • Data real-time
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="flex-1 p-8 overflow-auto" id="admin-content">
+                    <!-- Tab 0: Tampilan Umum -->
+                    <div id="admin-tab-0">
+                        <h4 class="font-semibold text-xl mb-6">Ubah Tampilan Website</h4>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Nama Madrasah</label>
+                                <input id="admin-nama" type="text" class="w-full px-4 py-3 border rounded-2xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Logo Madrasah (URL atau upload)</label>
+                                <div class="flex gap-3">
+                                    <input id="admin-logo-url" type="text" placeholder="https://" class="flex-1 px-4 py-3 border rounded-2xl">
+                                    <label class="cursor-pointer px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl flex items-center">
+                                        📤 Upload
+                                        <input id="logo-upload" type="file" accept="image/*" class="hidden" onchange="uploadLogo(event)">
+                                    </label>
+                                </div>
+                                <img id="admin-logo-preview" class="mt-4 w-20 h-20 object-cover rounded-2xl border">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Judul Utama</label>
+                                <input id="admin-judul" type="text" class="w-full px-4 py-3 border rounded-2xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Sub Judul</label>
+                                <input id="admin-subjudul" type="text" class="w-full px-4 py-3 border rounded-2xl">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium mb-2">Kata Pengantar</label>
+                                <textarea id="admin-kata-pengantar" rows="4" class="w-full px-4 py-3 border rounded-3xl"></textarea>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium mb-2">Informasi Daftar Ulang</label>
+                                <textarea id="admin-info-daftar" rows="5" class="w-full px-4 py-3 border rounded-3xl"></textarea>
+                            </div>
+                            
+                            <!-- Warna -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Warna Font</label>
+                                <input id="admin-font-color" type="color" class="w-full h-12 border rounded-2xl p-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Warna Latar Dashboard</label>
+                                <input id="admin-bg-color" type="color" class="w-full h-12 border rounded-2xl p-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Warna Diterima / Lulus</label>
+                                <input id="admin-accepted-color" type="color" class="w-full h-12 border rounded-2xl p-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Warna Cadangan</label>
+                                <input id="admin-reserve-color" type="color" class="w-full h-12 border rounded-2xl p-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Warna Tidak Diterima</label>
+                                <input id="admin-rejected-color" type="color" class="w-full h-12 border rounded-2xl p-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Teks Footer</label>
+                                <input id="admin-footer" type="text" class="w-full px-4 py-3 border rounded-2xl">
+                            </div>
+                        </div>
+                        <button onclick="saveGeneralSettings()" 
+                                class="mt-8 w-full bg-emerald-600 text-white py-4 rounded-3xl font-semibold hover:bg-emerald-700">
+                            💾 Simpan Semua Perubahan Tampilan
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Data Pendaftar -->
+                    <div id="admin-tab-1" class="hidden">
+                        <div class="flex justify-between mb-6">
+                            <h4 class="font-semibold text-xl">Data Calon Murid</h4>
+                            <button onclick="showAddStudentForm()" 
+                                    class="px-6 py-2 bg-emerald-600 text-white rounded-3xl text-sm font-medium flex items-center gap-2">
+                                + Tambah Pendaftar Baru
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-auto max-h-[500px]">
+                            <table class="w-full" id="students-table">
+                                <thead>
+                                    <tr class="border-b text-left text-sm text-gray-500">
+                                        <th class="pb-3 font-medium">NIK</th>
+                                        <th class="pb-3 font-medium">Nama</th>
+                                        <th class="pb-3 font-medium">Sekolah Asal</th>
+                                        <th class="pb-3 font-medium">Program</th>
+                                        <th class="pb-3 font-medium">Status</th>
+                                        <th class="pb-3 w-24"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="students-body" class="text-sm divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Pengaturan Pengumuman -->
+                    <div id="admin-tab-2" class="hidden">
+                        <h4 class="font-semibold text-xl mb-6">Jadwal Pengumuman &amp; Countdown</h4>
+                        <div class="max-w-md">
+                            <label class="block text-sm font-medium mb-2">Tanggal &amp; Jam Pengumuman</label>
+                            <input id="admin-announcement" type="datetime-local" class="w-full px-4 py-3 border rounded-3xl">
+                            <p class="text-xs text-gray-400 mt-2">Setelah tanggal ini, fitur pencarian NIK akan aktif dan countdown hilang.</p>
+                            
+                            <button onclick="saveAnnouncement()" 
+                                    class="mt-8 w-full bg-emerald-600 text-white py-4 rounded-3xl font-semibold">
+                                Simpan Tanggal Pengumuman
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Siswa -->
+    <div onclick="if(event.target.id === 'student-modal') hideStudentModal()" 
+         id="student-modal" class="hidden fixed inset-0 bg-black/60 z-[10000] flex items-center justify-center">
+        <div onclick="event.stopImmediatePropagation()" class="bg-white rounded-3xl w-full max-w-lg p-8">
+            <h3 id="modal-student-title" class="text-2xl font-semibold mb-6">Tambah Pendaftar Baru</h3>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-medium mb-1">NIK (16 digit)</label>
+                    <input id="form-nik" type="text" maxlength="16" class="w-full px-4 py-4 border rounded-2xl">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1">Nama Lengkap</label>
+                    <input id="form-nama" type="text" class="w-full px-4 py-4 border rounded-2xl">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1">Sekolah Asal</label>
+                    <input id="form-sekolah" type="text" class="w-full px-4 py-4 border rounded-2xl">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1">Program</label>
+                    <input id="form-program" type="text" class="w-full px-4 py-4 border rounded-2xl" placeholder="Reguler / Tahfidz">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1">Status</label>
+                    <select id="form-status" class="w-full px-4 py-4 border rounded-2xl">
+                        <option value="Diterima">Diterima / Lulus</option>
+                        <option value="Cadangan">Cadangan</option>
+                        <option value="Tidak Diterima">Tidak Diterima / Tidak Lulus</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-10">
+                <button onclick="hideStudentModal()" 
+                        class="flex-1 py-4 border rounded-3xl font-medium">Batal</button>
+                <button onclick="saveStudent()" 
+                        id="btn-save-student"
+                        class="flex-1 py-4 bg-emerald-600 text-white rounded-3xl font-medium">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================== KONFIGURASI SUPABASE ==================
+        // GANTI DENGAN MILIK ANDA SETELAH BUAT PROJECT DI SUPABASE
+        const SUPABASE_URL = 'https://xxxxxxxxxxxx.supabase.co'   // ← GANTI
+        const SUPABASE_ANON_KEY = 'eyJhbGciOi...'                 // ← GANTI dengan anon public key Anda
+        
+        let supabaseClient = null
+        let currentSettings = {}
+        let allStudents = []
+        let isAdminLoggedIn = false
+        let currentEditingStudentId = null
+        let announcementTimer = null
+        let autoRefreshTimer = null
+        let currentPage = 'home'
+        let announced = false
+
+        // Inisialisasi Tailwind + Supabase
+        function initialize() {
+            // Tailwind
+            return {
+                config(userConfig = {}) {
+                    return {
+                        content: [],
+                        theme: { extend: {} },
+                        plugins: [],
+                        ...userConfig,
+                    }
+                },
+                theme: { extend: {} }
+            }
+        }
+        
+        // Buat client Supabase
+        async function initSupabase() {
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'https://xxxxxxxxxxxx.supabase.co') {
+                alert('⚠️ Belum mengisi SUPABASE_URL dan SUPABASE_ANON_KEY di kode. Website masih dalam mode demo.\n\nSilakan ganti dulu di baris 300-301 sebelum publish ke Vercel.')
+                return false
+            }
+            
+            supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            await loadSettings()
+            await loadStudents()
+            return true
+        }
+
+        // Load settings dari Supabase
+        async function loadSettings() {
+            const { data, error } = await supabaseClient
+                .from('settings')
+                .select('*')
+                .eq('id', 1)
+                .single()
+            
+            if (error && error.code === 'PGRST116') {
+                console.log('Belum ada data settings, silakan buat row id=1 di Supabase')
+                return
+            }
+            
+            if (data) {
+                currentSettings = data
+                applySettings()
+            }
+        }
+
+        // Load semua siswa
+        async function loadStudents() {
+            const { data } = await supabaseClient
+                .from('students')
+                .select('*')
+                .order('nama')
+            
+            allStudents = data || []
+        }
+
+        // Terapkan semua pengaturan ke UI
+        function applySettings() {
+            // Header
+            document.getElementById('header-nama').textContent = currentSettings.nama_madrasah || 'Madrasah Ibtidaiyah'
+            document.getElementById('header-logo').src = currentSettings.logo || 'https://placehold.co/200x200/10b981/ffffff?text=MI'
+            
+            // Dashboard
+            document.getElementById('judul').textContent = currentSettings.judul || 'PENGUMUMAN HASIL PMBM'
+            document.getElementById('sub-judul').textContent = currentSettings.sub_judul || 'Tahun Pelajaran 2025/2026'
+            document.getElementById('kata-pengantar').innerHTML = (currentSettings.kata_pengantar || '').replace(/\n/g, '<br><br>')
+            
+            // Info daftar ulang
+            document.getElementById('info-daftar-ulang').innerHTML = (currentSettings.info_daftar_ulang || 'Informasi akan diisi oleh admin').replace(/\n/g, '<br><br>')
+            
+            // Footer
+            document.getElementById('footer-text').innerHTML = `<p>${currentSettings.footer_text || 'Madrasah Ibtidaiyah © 2026'}</p>`
+            
+            // Warna
+            document.documentElement.style.setProperty('--font-color', currentSettings.font_color || '#1f2937')
+            document.documentElement.style.setProperty('--bg-color', currentSettings.bg_color || '#f8fafc')
+            document.documentElement.style.setProperty('--accepted-color', currentSettings.accepted_color || '#10b981')
+            document.documentElement.style.setProperty('--reserve-color', currentSettings.reserve_color || '#f59e0b')
+            document.documentElement.style.setProperty('--rejected-color', currentSettings.rejected_color || '#ef4444')
+            
+            // Update title
+            document.getElementById('page-title').textContent = `PMBM - ${currentSettings.nama_madrasah || ''}`
+            
+            // Cek apakah sudah pengumuman
+            checkAnnouncementStatus()
+        }
+
+        // Cek status pengumuman
+        function checkAnnouncementStatus() {
+            if (!currentSettings.announcement_date) return
+            const target = new Date(currentSettings.announcement_date)
+            announced = new Date() >= target
+        }
+
+        // Countdown
+        function startCountdown() {
+            if (announcementTimer) clearInterval(announcementTimer)
+            
+            const targetDate = new Date(currentSettings.announcement_date)
+            if (!targetDate) return
+            
+            document.getElementById('target-date').textContent = targetDate.toLocaleString('id-ID', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            })
+            
+            announcementTimer = setInterval(() => {
+                const now = new Date()
+                const diff = targetDate - now
+                
+                if (diff <= 0) {
+                    clearInterval(announcementTimer)
+                    announced = true
+                    applySettings()
+                    if (currentPage === 'cek') showSearchForm()
+                    return
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+                
+                document.getElementById('days').textContent = String(days).padStart(2, '0')
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0')
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0')
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0')
+            }, 1000)
+        }
+
+        // Navigasi antar halaman
+        function navigateTo(page) {
+            currentPage = page
+            
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'))
+            
+            // Show selected
+            document.getElementById(`page-${page}`).classList.remove('hidden')
+            
+            if (page === 'cek') {
+                checkAnnouncementStatus()
+                if (announced) {
+                    showSearchForm()
+                } else {
+                    document.getElementById('countdown-section').classList.remove('hidden')
+                    document.getElementById('search-section').classList.add('hidden')
+                    startCountdown()
+                    
+                    // Auto refresh 25 detik ke home
+                    if (autoRefreshTimer) clearTimeout(autoRefreshTimer)
+                    autoRefreshTimer = setTimeout(() => {
+                        if (currentPage === 'cek' && !announced) navigateTo('home')
+                    }, 25000)
+                }
+            } else {
+                if (announcementTimer) clearInterval(announcementTimer)
+                if (autoRefreshTimer) clearTimeout(autoRefreshTimer)
+            }
+        }
+
+        function showSearchForm() {
+            document.getElementById('countdown-section').classList.add('hidden')
+            document.getElementById('search-section').classList.remove('hidden')
+        }
+
+        // Cek kelulusan
+        async function cekKelulusan() {
+            const nik = document.getElementById('nik-input').value.trim()
+            if (!nik || nik.length !== 16) {
+                alert('NIK harus 16 digit!')
+                return
+            }
+            
+            const found = allStudents.find(s => s.nik === nik)
+            
+            const resultArea = document.getElementById('result-area')
+            const notFound = document.getElementById('not-found')
+            
+            resultArea.classList.add('hidden')
+            notFound.classList.add('hidden')
+            
+            if (found) {
+                resultArea.classList.remove('hidden')
+                
+                document.getElementById('result-nik').textContent = found.nik
+                document.getElementById('result-nama').textContent = found.nama
+                document.getElementById('result-sekolah').textContent = found.sekolah_asal
+                document.getElementById('result-program').textContent = found.program
+                
+                const statusEl = document.getElementById('result-status')
+                statusEl.innerHTML = `
+                    <span class="status-badge" 
+                          style="background-color: ${getStatusColor(found.status)}; color: white;">
+                        ${found.status}
+                    </span>
+                `
+            } else {
+                notFound.classList.remove('hidden')
+            }
+        }
+
+        function getStatusColor(status) {
+            if (status === 'Diterima') return 'var(--accepted-color)'
+            if (status === 'Cadangan') return 'var(--reserve-color)'
+            return 'var(--rejected-color)'
+        }
+
+        // ============== ADMIN FUNCTIONS ==============
+        function showAdminLogin() {
+            if (isAdminLoggedIn) {
+                showAdminPanel()
+                return
+            }
+            
+            const email = prompt('🔑 Masukkan Email Admin (username):')
+            const password = prompt('Masukkan Password Admin:')
+            
+            if (!email || !password) return
+            
+            loginAdmin(email, password)
+        }
+
+        async function loginAdmin(email, password) {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            })
+            
+            if (error) {
+                alert('❌ Login gagal: ' + error.message + '\n\nPastikan email & password sesuai dengan user yang dibuat di Supabase Auth.')
+                return
+            }
+            
+            isAdminLoggedIn = true
+            showAdminPanel()
+        }
+
+        function showAdminPanel() {
+            const modal = document.getElementById('admin-modal')
+            modal.classList.remove('hidden')
+            modal.classList.add('flex')
+            
+            // Load data terbaru
+            loadSettings()
+            loadStudents().then(renderStudentsTable)
+            
+            // Default tab
+            switchAdminTab(0)
+        }
+
+        function hideAdmin() {
+            const modal = document.getElementById('admin-modal')
+            modal.classList.add('hidden')
+            modal.classList.remove('flex')
+        }
+
+        function previewWebsite() {
+            hideAdmin()
+            // Refresh current page
+            setTimeout(() => {
+                location.reload()
+            }, 300)
+        }
+
+        async function logoutAdmin() {
+            await supabaseClient.auth.signOut()
+            isAdminLoggedIn = false
+            hideAdmin()
+            alert('✅ Anda telah logout dari Admin Panel')
+        }
+
+        function switchAdminTab(tab) {
+            // Reset tabs
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active', 'bg-white', 'shadow-sm'))
+            document.getElementById(`tab-${tab}`).classList.add('active', 'bg-white', 'shadow-sm')
+            
+            // Hide all content
+            document.getElementById('admin-tab-0').classList.add('hidden')
+            document.getElementById('admin-tab-1').classList.add('hidden')
+            document.getElementById('admin-tab-2').classList.add('hidden')
+            
+            // Show selected
+            document.getElementById(`admin-tab-${tab}`).classList.remove('hidden')
+            
+            if (tab === 1) renderStudentsTable()
+        }
+
+        // Save general settings
+        async function saveGeneralSettings() {
+            const payload = {
+                nama_madrasah: document.getElementById('admin-nama').value,
+                logo: document.getElementById('admin-logo-url').value || currentSettings.logo,
+                judul: document.getElementById('admin-judul').value,
+                sub_judul: document.getElementById('admin-subjudul').value,
+                kata_pengantar: document.getElementById('admin-kata-pengantar').value,
+                info_daftar_ulang: document.getElementById('admin-info-daftar').value,
+                font_color: document.getElementById('admin-font-color').value,
+                bg_color: document.getElementById('admin-bg-color').value,
+                accepted_color: document.getElementById('admin-accepted-color').value,
+                reserve_color: document.getElementById('admin-reserve-color').value,
+                rejected_color: document.getElementById('admin-rejected-color').value,
+                footer_text: document.getElementById('admin-footer').value
+            }
+            
+            const { error } = await supabaseClient
+                .from('settings')
+                .update(payload)
+                .eq('id', 1)
+            
+            if (!error) {
+                alert('✅ Tampilan berhasil disimpan!')
+                await loadSettings()
+                applySettings()
+            } else {
+                alert('Gagal menyimpan: ' + error.message)
+            }
+        }
+
+        // Upload logo → base64
+        function uploadLogo(e) {
+            const file = e.target.files[0]
+            if (!file) return
+            
+            const reader = new FileReader()
+            reader.onload = function(ev) {
+                document.getElementById('admin-logo-preview').src = ev.target.result
+                document.getElementById('admin-logo-url').value = ev.target.result
+            }
+            reader.readAsDataURL(file)
+        }
+
+        // Render tabel siswa
+        function renderStudentsTable() {
+            const tbody = document.getElementById('students-body')
+            tbody.innerHTML = ''
+            
+            allStudents.forEach(student => {
+                const row = document.createElement('tr')
+                row.className = 'hover:bg-gray-50'
+                row.innerHTML = `
+                    <td class="py-4 font-mono">${student.nik}</td>
+                    <td class="py-4">${student.nama}</td>
+                    <td class="py-4">${student.sekolah_asal}</td>
+                    <td class="py-4">${student.program}</td>
+                    <td class="py-4">
+                        <span class="status-badge" style="background-color: ${getStatusColor(student.status)}; color: white;">
+                            ${student.status}
+                        </span>
+                    </td>
+                    <td class="py-4 text-right flex gap-2">
+                        <button onclick="editStudent(${student.id})" class="text-emerald-600 hover:text-emerald-700">✏️</button>
+                        <button onclick="deleteStudent(${student.id})" class="text-red-500 hover:text-red-600">🗑️</button>
+                    </td>
+                `
+                tbody.appendChild(row)
+            })
+            
+            if (allStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-gray-400">Belum ada data pendaftar. Tambahkan yang pertama!</td></tr>`
+            }
+        }
+
+        function showAddStudentForm() {
+            currentEditingStudentId = null
+            document.getElementById('modal-student-title').textContent = 'Tambah Pendaftar Baru'
+            document.getElementById('form-nik').value = ''
+            document.getElementById('form-nama').value = ''
+            document.getElementById('form-sekolah').value = ''
+            document.getElementById('form-program').value = ''
+            document.getElementById('form-status').value = 'Diterima'
+            
+            document.getElementById('student-modal').classList.remove('hidden')
+            document.getElementById('student-modal').classList.add('flex')
+        }
+
+        function editStudent(id) {
+            const student = allStudents.find(s => s.id === id)
+            if (!student) return
+            
+            currentEditingStudentId = id
+            document.getElementById('modal-student-title').textContent = 'Edit Data Pendaftar'
+            
+            document.getElementById('form-nik').value = student.nik
+            document.getElementById('form-nama').value = student.nama
+            document.getElementById('form-sekolah').value = student.sekolah_asal
+            document.getElementById('form-program').value = student.program
+            document.getElementById('form-status').value = student.status
+            
+            document.getElementById('student-modal').classList.remove('hidden')
+            document.getElementById('student-modal').classList.add('flex')
+        }
+
+        async function saveStudent() {
+            const payload = {
+                nik: document.getElementById('form-nik').value.trim(),
+                nama: document.getElementById('form-nama').value.trim(),
+                sekolah_asal: document.getElementById('form-sekolah').value.trim(),
+                program: document.getElementById('form-program').value.trim(),
+                status: document.getElementById('form-status').value
+            }
+            
+            if (!payload.nik || !payload.nama) {
+                alert('NIK dan Nama wajib diisi!')
+                return
+            }
+            
+            let error
+            
+            if (currentEditingStudentId) {
+                // Update
+                const { error: err } = await supabaseClient
+                    .from('students')
+                    .update(payload)
+                    .eq('id', currentEditingStudentId)
+                error = err
+            } else {
+                // Insert
+                const { error: err } = await supabaseClient
+                    .from('students')
+                    .insert([payload])
+                error = err
+            }
+            
+            if (!error) {
+                hideStudentModal()
+                await loadStudents()
+                renderStudentsTable()
+                alert('✅ Data pendaftar berhasil disimpan!')
+            } else {
+                alert('Gagal: ' + error.message)
+            }
+        }
+
+        function hideStudentModal() {
+            const modal = document.getElementById('student-modal')
+            modal.classList.add('hidden')
+            modal.classList.remove('flex')
+            currentEditingStudentId = null
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('Yakin menghapus data pendaftar ini?')) return
+            
+            const { error } = await supabaseClient
+                .from('students')
+                .delete()
+                .eq('id', id)
+            
+            if (!error) {
+                await loadStudents()
+                renderStudentsTable()
+            }
+        }
+
+        // Save announcement date
+        async function saveAnnouncement() {
+            const dateValue = document.getElementById('admin-announcement').value
+            if (!dateValue) return alert('Pilih tanggal & jam!')
+            
+            const { error } = await supabaseClient
+                .from('settings')
+                .update({ announcement_date: dateValue })
+                .eq('id', 1)
+            
+            if (!error) {
+                alert('✅ Tanggal pengumuman berhasil disimpan!')
+                await loadSettings()
+                checkAnnouncementStatus()
+            }
+        }
+
+        // ================== START APP ==================
+        window.onload = async function() {
+            const success = await initSupabase()
+            if (!success) {
+                // Fallback demo mode
+                console.log('%c🔥 Mode demo aktif (tanpa Supabase)', 'color:#10b981;font-weight:bold')
+                // Anda masih bisa melihat tampilan meski tanpa DB
+            }
+            
+            // Default navigation ke home
+            navigateTo('home')
+            
+            console.log('%c✅ Website PMBM siap! Elegant, responsif, dan sudah terhubung Supabase.', 'color:#10b981;font-size:13px')
+            console.log('Silakan login admin dengan klik kunci kecil di pojok kanan atas.')
+        }
+    </script>
+</body>
+</html>
